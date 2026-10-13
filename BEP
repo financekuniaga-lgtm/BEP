@@ -65,7 +65,7 @@
     <!-- Main Content Layout -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <!-- Error Alert Banner -->
+        <!-- Error Alert Banner (Hidden by Default) -->
         <div id="errorBanner" class="hidden mb-6 p-4 bg-rose-50 border-l-4 border-rose-500 rounded-r-xl text-rose-800 text-xs sm:text-sm flex items-center justify-between">
             <div class="flex items-center gap-2">
                 <svg class="w-5 h-5 text-rose-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,7 +101,7 @@
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Rincian Biaya Variabel / HPP per Unit (Rp)</label>
                             <div id="variableCostContainer" class="space-y-2">
-                                <!-- Dynamic Variable Cost Rows -->
+                                <!-- Dynamic Variable Cost Rows will be added here -->
                             </div>
                         </div>
 
@@ -126,7 +126,7 @@
 
                     <div class="space-y-3">
                         <div id="fixedCostContainer" class="space-y-2">
-                            <!-- Dynamic Fixed Cost Rows -->
+                            <!-- Dynamic Fixed Cost Rows will be added here -->
                         </div>
 
                         <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-xs font-bold text-slate-800">
@@ -137,6 +137,12 @@
                 </div>
 
                 <!-- Card 3: Target Keuntungan (Opsional) -->
+                            <span id="totalFixedCostDisplay" class="text-indigo-700 font-mono">Rp 0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Target Keuntungan (Optional) -->
                 <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
                     <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
                         <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
@@ -190,7 +196,7 @@
                     <!-- Card BEP Rupiah -->
                     <div class="bg-emerald-900 text-white rounded-2xl p-5 shadow-sm space-y-1 relative overflow-hidden">
                         <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-800/50 rounded-full blur-xl pointer-events-none"></div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-300 block">BEP Omset (Rupiah)</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-300 block">BEP Omnset (Rupiah)</span>
                         <div class="flex items-baseline gap-1.5">
                             <span id="bepRupiahDisplay" class="text-xl sm:text-2xl font-black font-mono">Rp 0</span>
                         </div>
@@ -223,7 +229,7 @@
                 <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
                     <div class="flex flex-wrap justify-between items-center border-b border-slate-100 pb-3 gap-2">
                         <div>
-                            <h3 class="text-xs sm:text-sm font-bold text-slate-800">Grafik Visualisasi Break-Even Point</h3>
+                            <h3 class="text-xs sm:text-sm font-bold text-slate-800">Grafik Visualiasi Break-Even Point</h3>
                             <p class="text-[10px] text-slate-400">Titik potong Pendapatan (Hijau) dan Total Biaya (Merah)</p>
                         </div>
                     </div>
@@ -272,7 +278,7 @@
                     </div>
                 </div>
 
-                <!-- Explanation Formula Guide -->
+                <!-- Explanation Formula Modal / Guide -->
                 <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-xs text-slate-600 space-y-2">
                     <p class="font-bold text-slate-800 flex items-center gap-1">
                         <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -307,39 +313,6 @@
             if (!el) return 0;
             const val = parseFloat(el.value);
             return isNaN(val) ? 0 : val;
-        }
-
-        // Load Sample Data function for quick testing
-        function loadSampleData() {
-            document.getElementById('sellingPrice').value = 150000;
-            document.getElementById('targetProfit').value = 5000000;
-
-            // Clear containers
-            document.getElementById('variableCostContainer').innerHTML = '';
-            document.getElementById('fixedCostContainer').innerHTML = '';
-
-            addVariableCostRow('HPP Produk', 80000);
-            addVariableCostRow('Komisi Penjualan', 10000);
-
-            addFixedCostRow('Sewa Tempat', 1500000);
-            addFixedCostRow('Gaji Karyawan', 2500000);
-            addFixedCostRow('Operasional Lainnya', 500000);
-            
-            calculateBEP();
-        }
-
-        // Reset Form function
-        function resetForm() {
-            document.getElementById('sellingPrice').value = '';
-            document.getElementById('targetProfit').value = '';
-            document.getElementById('variableCostContainer').innerHTML = '';
-            document.getElementById('fixedCostContainer').innerHTML = '';
-            document.getElementById('errorBanner').classList.add('hidden');
-            
-            addVariableCostRow();
-            addFixedCostRow();
-            resetOutputs();
-            calculateBEP();
         }
 
         // Dynamic Variable Cost Row Management
@@ -460,6 +433,7 @@
             const slider = document.getElementById('simQtySlider');
             const simInput = document.getElementById('simQtyInput');
             
+            // Set minimal batas atas simulasi ke 10.000 unit (atau 2x BEP jika BEP lebih tinggi)
             const maxVal = Math.max(Math.ceil(bepUnit * 2), 10000);
             slider.max = maxVal;
             if (simInput) simInput.max = maxVal;
@@ -543,11 +517,13 @@
             const labels = [];
             const revenueData = [];
             const totalCostData = [];
+            const fixedCostData = [];
 
             for (let u = 0; u <= maxUnits; u += step) {
                 labels.push(u + " Unit");
                 revenueData.push(u * price);
                 totalCostData.push(fixedCost + (u * varCost));
+                fixedCostData.push(fixedCost);
             }
 
             if (bepChartInstance) {
@@ -576,6 +552,15 @@
                             borderWidth: 2.5,
                             fill: true,
                             tension: 0.1
+                        },
+                        {
+                            label: 'Biaya Tetap (Fixed Cost)',
+                            data: fixedCostData,
+                            borderColor: '#94A3B8',
+                            borderWidth: 1.5,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false
                         }
                     ]
                 },
@@ -586,34 +571,28 @@
                         legend: {
                             position: 'bottom',
                             labels: {
-                                boxWidth: 12,
-                                font: {
-                                    size: 11
+                                font: { size: 10, family: 'Inter' },
+                                boxWidth: 12
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatRupiah(context.raw);
                                 }
                             }
                         }
                     },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                font: {
-                                    size: 10
-                                },
-                                callback: function(value) {
-                                    if (value >= 1000000) {
-                                        return (value / 1000000).toFixed(0) + " Juta";
-                                    } else if (value >= 1000) {
-                                        return (value / 1000).toFixed(0) + " Ribu";
-                                    }
-                                    return value;
-                                }
-                            }
-                        },
                         x: {
+                            ticks: { font: { size: 9, family: 'Inter' } },
+                            grid: { display: false }
+                        },
+                        y: {
                             ticks: {
-                                font: {
-                                    size: 10
+                                font: { size: 9, family: 'Inter' },
+                                callback: function(value) {
+                                    return 'Rp ' + (value / 1000) + 'k';
                                 }
                             }
                         }
@@ -622,11 +601,44 @@
             });
         }
 
-        // Initialize default empty rows on page load
-        window.onload = function() {
-            addVariableCostRow();
-            addFixedCostRow();
-        };
+        // Load Sample Data with Dynamic Rows
+        function loadSampleData() {
+            document.getElementById('sellingPrice').value = 75000;
+            
+            // Re-populate Variable Costs
+            document.getElementById('variableCostContainer').innerHTML = '';
+            addVariableCostRow('HPP / Modal Barang', 40000);
+            addVariableCostRow('Kemasan & Stiker', 5000);
+
+            // Re-populate Fixed Costs
+            document.getElementById('fixedCostContainer').innerHTML = '';
+            addFixedCostRow('Sewa Tempat / Toko', 2500000);
+            addFixedCostRow('Gaji Karyawan Tetap', 4000000);
+            addFixedCostRow('Listrik, Air & Utilitas', 1000000);
+            addFixedCostRow('Pemasaran & Iklan', 500000);
+
+            document.getElementById('targetProfit').value = 5000000;
+
+            calculateBEP();
+        }
+
+        // Reset all inputs
+        function resetForm() {
+            document.getElementById('sellingPrice').value = '';
+            document.getElementById('variableCostContainer').innerHTML = '';
+            document.getElementById('fixedCostContainer').innerHTML = '';
+            document.getElementById('targetProfit').value = '';
+
+            addVariableCostRow('HPP Modal Barang', '');
+            addFixedCostRow('Sewa Tempat', '');
+
+            calculateBEP();
+        }
+
+        // On DOM Load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSampleData();
+        });
     </script>
 </body>
 </html>
